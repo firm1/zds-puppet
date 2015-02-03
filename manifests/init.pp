@@ -62,7 +62,7 @@ class zds (
 
     exec {"git-clone":
       command => "git clone -b ${branch} --single-branch git://github.com/${repo}/zds-site.git /opt/${id}/zds-site",
-      creates => /opt/${id}/zds-site,
+      creates => "/opt/${id}/zds-site",
       require => [Package['git-core'], File['/opt/${id}']]
     }
 
