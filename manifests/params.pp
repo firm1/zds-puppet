@@ -3,7 +3,7 @@ class zds::params {
     validate_hash($zds_params)
 
     $url = $zds_params['url']
-    $repo = $zds_params['repo'],
-    $branch = $zds_params['branch'],
-    $id = $zds_params['id'],
+    $repo = $zds_params['repo']
+    $branch = $zds_params['branch']
+    $id = $zds_params['id']
 }
