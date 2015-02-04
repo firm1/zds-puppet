@@ -40,55 +40,66 @@ class zds (
 	$repo = $zds::params::repo,
 	$branch = $zds::params::branch,
 	$id = $zds::params::id
-) inherits ::zds::params {
+) inherits zds::params {
 
     include nginx
-    include python
-    include mysql
-    include nodejs
-  
+ 
+    package {"texlive": 
+      ensure => "latest"
+    }
+    package {"texlive-xetex":
+      ensure => "latest"
+    }
+    package {"texlive-lang-french":
+      ensure => "latest"
+    }
+    package {"texlive-latex-extra": 
+      ensure => "latest"
+    }
+
+    package {"git-core":
+      ensure => latest,
+    } ->
+    vcsrepo { "/opt/${id}/zds-site":
+      ensure   => present,
+      provider => git,
+      source   => "git://github.com/${repo}/zds-site.git",
+      revision => "${branch}",
+    }
+
+    class { 'python' :
+      version    => 'system',
+      pip        => true,
+      dev        => true,
+      virtualenv => true,
+    } ->
     package {
-      "git-core": ensure => latest;
-      "texlive": ensure => latest;
-      "texlive-xetex": ensure => latest;
-      "texlive-lang-french": ensure => latest;
-      "texlive-latex-extra": ensure => latest;
-    }
+        "libxml2-dev": ensure => present;
+        "python-lxml": ensure => present;
+        "python-sqlparse": ensure => present;
+        "libxslt1-dev": ensure => present;
+    } ->
+    python::virtualenv {"/opt/${id}/venv":
+        ensure       => present,
+        version      => 'system',
+        requirements => "/opt/${id}/zds-site/requirements.txt",
+        systempkgs   => true,
+        distribute   => false,
+    } ->
+    python::gunicorn { 'vhost':
+        ensure      => present,
+        virtualenv  => "/opt/${id}/venv",
+        mode        => 'wsgi',
+        dir         => "/opt/${id}/zds-site/",
+        bind        => 'unix:/tmp/gunicorn.socket',
+        environment => 'prod',
+        appmodule   => 'zds',
+        osenv       => { 'DBHOST' => 'localhost' },
+        timeout     => 30,
+        template    => 'python/gunicorn.erb',
+    } 
 
-    package { 'npm':
-      ensure   => latest,
-      provider => 'npm',
-    }
-
-    exec {"git-clone":
-      command => "git clone -b ${branch} --single-branch git://github.com/${repo}/zds-site.git /opt/${id}/zds-site",
-      creates => "/opt/${id}/zds-site",
-      require => [Package['git-core'], File['/opt/${id}']]
-    }
-
-    python::virtualenv {'/opt/${id}/venv':
-      ensure       => present,
-      version      => 'system',
-      requirements => '/opt/${id}/zds-site/requirements.txt',
-      systempkgs   => true,
-      distribute   => false,
-    }
-
-    python::gunicorn { 'vhost-${id}' :
-      ensure      => present,
-      virtualenv  => '/opt/${id}/venv',
-      mode        => 'wsgi',
-      dir         => '/opt/${id}/zds-site/',
-      bind        => 'unix:/tmp/gunicorn.socket',
-      environment => 'prod',
-      appmodule   => 'zds',
-      osenv       => { 'DBHOST' => 'localhost' },
-      timeout     => 30,
-      template    => 'python/gunicorn.erb',
-    }
-
-    nginx::resource::vhost { '${url}/${id}':
-      www_root => '/opt/${id}/zds-site',
-      require => Exec['git-clone']
+    nginx::resource::vhost {"${id}":
+      www_root => "/opt/${id}/zds-site",
     }	
 }
