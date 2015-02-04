@@ -86,6 +86,13 @@ class zds (
         systempkgs   => true,
         distribute   => false,
     } ->
+    python::pip { 'gunicorn' :
+      pkgname       => 'gunicorn',
+      ensure        => present,
+      virtualenv    => "/opt/${id}/venv",
+      install_args  => ['-e'],
+      timeout       => 1800,
+    } ->
     python::gunicorn { 'vhost':
         ensure      => present,
         virtualenv  => "/opt/${id}/venv",
@@ -97,8 +104,7 @@ class zds (
         osenv       => { 'DBHOST' => 'localhost' },
         timeout     => 30,
         template    => 'python/gunicorn.erb',
-    } 
-
+    } ->
     nginx::resource::vhost {"${id}":
       www_root => "/opt/${id}/zds-site",
     }	
