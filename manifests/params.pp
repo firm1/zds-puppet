@@ -20,4 +20,5 @@ class zds::params {
     $node_version = "v0.10.36"
     $pandoc_repo = "jgm"
     $pandoc_release_tag = "1.13"
+    $pandoc_dest = "/opt/${id}/pandoc"
 }
