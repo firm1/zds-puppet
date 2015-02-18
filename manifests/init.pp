@@ -39,11 +39,12 @@ class zds (
 	$url = $zds::params::url,
 	$repo = $zds::params::repo,
 	$branch = $zds::params::branch,
-	$id = $zds::params::id
+	$id = $zds::params::id,
 ) inherits zds::params {
 
     include nginx
- 
+    include supervisor
+
     package {"texlive": 
       ensure => "latest"
     }
@@ -63,21 +64,30 @@ class zds (
     vcsrepo { "/opt/${id}/zds-site":
       ensure   => present,
       provider => git,
-      source   => "git://github.com/${repo}/zds-site.git",
+      source   => "https://github.com/${repo}/zds-site.git",
       revision => "${branch}",
-    }
-
+    } ->
+    file {'settings_prod':
+      path => "/opt/${id}/zds-site/zds/settings_prod.py",
+      ensure => present,
+      content => template('zds/settings_prod.erb')
+    } ->
     class { 'python' :
       version    => 'system',
       pip        => true,
       dev        => true,
       virtualenv => true,
     } ->
+    class { 'nodejs':
+      version => 'v0.10.36',
+    } ->
     package {
         "libxml2-dev": ensure => present;
         "python-lxml": ensure => present;
         "python-sqlparse": ensure => present;
         "libxslt1-dev": ensure => present;
+        "python-mysqldb": ensure => present;
+        "libmysqlclient-dev": ensure => present;
     } ->
     python::virtualenv {"/opt/${id}/venv":
         ensure       => present,
@@ -86,26 +96,95 @@ class zds (
         systempkgs   => true,
         distribute   => false,
     } ->
-    python::pip { 'gunicorn' :
-      pkgname       => 'gunicorn',
-      ensure        => present,
-      virtualenv    => "/opt/${id}/venv",
-      install_args  => ['-e'],
-      timeout       => 1800,
+    file {'gunicorn_start':
+      path => "/opt/${id}/venv/bin/gunicorn_start.bash",
+      ensure => present,
+      content => template('zds/gunicorn_start.erb'),
+      mode => "0755"
     } ->
-    python::gunicorn { 'vhost':
+    python::pip { 'MySQL-python':
+        pkgname => 'MySQL-python',
+        ensure  => 'present',
+        virtualenv => "/opt/${id}/venv"
+    } ->
+    class { '::mysql::server':
+      root_password    => 'SuperPassword'
+    } ->
+    mysql_database { 'zdsbase':
+      ensure  => 'present',
+      charset => 'utf8',
+    } ->
+    exec { "syncdb":
+        command => "/opt/${id}/venv/bin/python /opt/${id}/zds-site/manage.py syncdb --noinput",
+        require => File['settings_prod']
+    } ->
+    exec { "migrate":
+        command => "/opt/${id}/venv/bin/python /opt/${id}/zds-site/manage.py migrate"
+    } ->
+    python::gunicorn { "vhost-${id}":
         ensure      => present,
         virtualenv  => "/opt/${id}/venv",
         mode        => 'wsgi',
         dir         => "/opt/${id}/zds-site/",
-        bind        => 'unix:/tmp/gunicorn.socket',
+        bind        => "unix:/tmp/gunicorn-${id}.sock",
         environment => 'prod',
         appmodule   => 'zds',
         osenv       => { 'DBHOST' => 'localhost' },
         timeout     => 30,
-        template    => 'python/gunicorn.erb',
     } ->
-    nginx::resource::vhost {"${id}":
-      www_root => "/opt/${id}/zds-site",
-    }	
+    exec {"update-npm":
+       command => "npm install -g npm",
+       path => "/usr/local/node/node-default/bin",
+    } ->
+    exec {"front-prod":
+        command => "npm install",
+        cwd => "/opt/${id}/zds-site/",
+        path => "/usr/local/node/node-default/bin",
+        require => Exec["update-npm"]
+    } ->
+    exec {"front-clean":
+        command => "npm run gulp -- clean",
+        cwd => "/opt/${id}/zds-site/",
+        path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin"],
+        require => Exec["front-prod"]
+    } ->
+    exec {"front-build":
+        command => "npm run gulp -- build",
+        cwd => "/opt/${id}/zds-site/",
+        path => ["/usr/local/node/node-default/bin","/usr/local/bin", "/bin"],
+        require => Exec["front-clean"]
+    } ->
+    file { "/opt/${id}/zds-site/static":
+        ensure => directory,
+    }
+    exec { "collectstatic":
+        command => "/opt/${id}/venv/bin/python /opt/${id}/zds-site/manage.py collectstatic --noinput --clear",
+        require => File['settings_prod']
+    } ->
+    supervisor::app { "zds-site-${id}":
+      app_name     => "zds-${id}",
+      command      => "/opt/${id}/venv/bin/gunicorn_start.bash",
+      directory    => "/opt/${id}/venv/bin",
+    }
+
+    nginx::resource::upstream { "puppet_zds_app_${id}":
+      members => [
+        "unix:/tmp/gunicorn-${id}.sock"
+      ],
+      require => Exec["front-build"]
+    } 
+
+    nginx::resource::vhost {"vhost-${id}":
+      proxy => "http://puppet_zds_app_${id}",
+      server_name => ["${url}"],
+      require => Exec["front-build"]
+    }
+
+    nginx::resource::location {"${id}_static":
+      ensure => present,
+      vhost => "vhost-${id}",
+      location => "/static/",
+      www_root => "/opt/${id}/zds-site/",
+      require => Exec["front-build"]
+    }
 }

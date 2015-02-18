@@ -6,8 +6,9 @@ class zds::params {
     #$repo = $zds_params['repo']
     #$branch = $zds_params['branch']
     #$id = $zds_params['id']
-    $url = "vps137741"
-    $repo = "zestedesavoir"
-    $branch = "dev"
-    $id = "1"
+
+    $url = "vps137741.ovh.net"
+    $repo = "Situphen"
+    $branch = "update-npm-dependencies"
+    $id = "testnode"
 }
