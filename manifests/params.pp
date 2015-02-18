@@ -8,7 +8,14 @@ class zds::params {
     #$id = $zds_params['id']
 
     $url = "vps137741.ovh.net"
-    $repo = "Situphen"
-    $branch = "update-npm-dependencies"
-    $id = "testnode"
+    $repo = "zestedesavoir"
+    $branch = "dev"
+    $id = "daily"
+    $database_name = "zdsbase"
+    $database_host = "localhost"
+    $database_user = "root"
+    $database_password = "SuperPassword"
+    $venv_path = "/opt/${id}/venv"
+    $webapp_path = "/opt/${id}/zds-site"
+    $node_version = "v0.10.36"
 }
