@@ -1,0 +1,45 @@
+import os
+from settings import ZDS_APP, INSTALLED_APPS
+
+DEBUG = False
+
+SECRET_KEY = '&vzn*^bz7e_hfn$rg72i*)p5ai*4^-ozds5rfvkm!1ca@ffoxc'
+
+THUMBNAIL_OPTIMIZE_COMMAND = {
+    'png': '/usr/bin/optipng {filename}',
+    'gif': '/usr/bin/optipng {filename}',
+    'jpeg': '/usr/bin/jpegoptim {filename}'
+}
+
+ZDS_APP['member']['anonymous_account'] = 'anonyme'
+ZDS_APP['member']['external_account'] = 'Auteur externe'
+ZDS_APP['member']['bot_account'] = 'admin'
+
+ZDS_APP['forum']['beta_forum_id'] = 23
+TOP_TAG_MAX = 10
+
+ZDS_APP['site']['url'] = '<%=url%>'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'zdsbase',
+        'USER': 'root',
+        'PASSWORD': 'SuperPassword',
+        'HOST': 'localhost',
+        'PORT': '',
+        'CONN_MAX_AGE': 600,
+    }
+}
+
+SDZ_TUTO_DIR = ''
+
+ALLOWED_HOSTS = ['*']
+
+PANDOC_LOC = '/home/zds/.cabal/bin/'
+PANDOC_LOG = '/var/log/pandoc-<%=id%>.log'
+PANDOC_LOG_STATE = True
+
+iapps = list(INSTALLED_APPS)
+iapps.remove('debug_toolbar')
+INSTALLED_APPS = tuple(iapps)
