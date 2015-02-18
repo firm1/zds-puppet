@@ -36,10 +36,10 @@
 # Copyright 2015 Your name here, unless otherwise noted.
 #
 class zds (
-	$url = $zds::params::url,
-	$repo = $zds::params::repo,
-	$branch = $zds::params::branch,
-	$id = $zds::params::id,
+    $url = $zds::params::url,
+    $repo = $zds::params::repo,
+    $branch = $zds::params::branch,
+    $id = $zds::params::id,
     $database_name = $zds::params::database_name,
     $database_host = $zds::params::database_host,
     $database_user = $zds::params::database_user,
@@ -47,6 +47,9 @@ class zds (
     $venv_path = $zds::params::venv_path,
     $webapp_path = $zds::params::webapp_path,
     $node_version = $zds::params::node_version,
+    $pandoc_repo = $zds::params::pandoc_repo,
+    $pandoc_release_tag = $zds::params::pandoc_release_tag,
+    $pandoc_dest = $zds::params::pandoc_dest,
 ) inherits zds::params {
 
     include nginx
@@ -74,6 +77,12 @@ class zds (
       source   => "https://github.com/${repo}/zds-site.git",
       revision => "${branch}",
     } ->
+    vcsrepo { "${pandoc_dest}":
+      ensure   => present,
+      provider => git,
+      source   => "https://github.com/${pandoc_repo}/pandoc.git",
+      revision => "${pandoc_release_tag}",
+    } ->
     file {'settings_prod':
       path => "${webapp_path}/zds/settings_prod.py",
       ensure => present,
@@ -95,6 +104,7 @@ class zds (
         "libxslt1-dev": ensure => present;
         "python-mysqldb": ensure => present;
         "libmysqlclient-dev": ensure => present;
+        "haskell-platform": ensure => present;
     } ->
     python::virtualenv {"${venv_path}":
         ensure       => present,
@@ -127,6 +137,14 @@ class zds (
     } ->
     exec { "migrate":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py migrate"
+    } ->
+    exec { "fixtures":
+        command => "${venv_path}/bin/python ${webapp_path}/manage.py loaddata fixtures/*.yaml",
+        cwd => "${webapp_path}",
+    } ->
+    exec { "advanced-fixtures":
+        command => "${venv_path}/bin/python ${webapp_path}/manage.py load_factory_data fixtures/advanced/aide_tuto_media.yaml",
+        cwd => "${webapp_path}",
     } ->
     python::gunicorn { "vhost-${id}":
         ensure      => present,
@@ -191,12 +209,35 @@ class zds (
       error_log => '${venv_path}/logs/nginx_error.log',
       require => [Exec["front-build"], File["${venv_path}/logs"]]
     }
-
     nginx::resource::location {"${id}_static":
       ensure => present,
       vhost => "vhost-${id}",
       location => "/static/",
       www_root => "${webapp_path}",
       require => Exec["front-build"]
+    }
+    
+    exec { "cabal-update":
+        command => "cabal update",
+        path => ["/usr/bin/","/usr/local/bin","/bin"],
+        require => Package['haskell-platform']
+    }
+    exec { "cabal-install":
+        command => "cabal install --force-reinstalls --upgrade-dependencies --only-dependencies",
+        cwd => "${pandoc_dest}",
+        path => ["/usr/bin/","/usr/local/bin","/bin"],
+        require => Exec['cabal-update']
+    }
+    exec { "cabal-conf":
+        command => "cabal configure",
+        cwd => "${pandoc_dest}",
+        path => ["/usr/bin/","/usr/local/bin","/bin"],
+        require => Exec['cabal-install']
+    }
+    exec { "cabal-build":
+        command => "cabal build",
+        cwd => "${pandoc_dest}",
+        path => ["/usr/bin/","/usr/local/bin","/bin"],
+        require => Exec['cabal-conf']
     }
 }
