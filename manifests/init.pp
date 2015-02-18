@@ -187,7 +187,7 @@ class zds (
     }
     exec { "collectstatic":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py collectstatic --noinput --clear",
-        require => File['settings_prod']
+        require => [File['settings_prod'], File["${webapp_path}/static"]]
     } ->
     supervisor::app { "zds-site-${id}":
       app_name     => "zds-${id}",
@@ -216,28 +216,20 @@ class zds (
       www_root => "${webapp_path}",
       require => Exec["front-build"]
     }
-    
-    exec { "cabal-update":
-        command => "cabal update",
-        path => ["/usr/bin/","/usr/local/bin","/bin"],
-        require => Package['haskell-platform']
+    group {"zds":
+      ensure => present,
     }
-    exec { "cabal-install":
-        command => "cabal install --force-reinstalls --upgrade-dependencies --only-dependencies",
-        cwd => "${pandoc_dest}",
-        path => ["/usr/bin/","/usr/local/bin","/bin"],
-        require => Exec['cabal-update']
-    }
-    exec { "cabal-conf":
-        command => "cabal configure",
-        cwd => "${pandoc_dest}",
-        path => ["/usr/bin/","/usr/local/bin","/bin"],
-        require => Exec['cabal-install']
-    }
-    exec { "cabal-build":
-        command => "cabal build",
-        cwd => "${pandoc_dest}",
-        path => ["/usr/bin/","/usr/local/bin","/bin"],
-        require => Exec['cabal-conf']
+
+    case $::osfamily {
+      'Debian': {
+        package {'pandoc-1.13.2-1-amd64.deb':
+          ensure => present,
+          provider => "dpkg",
+          source => "https://github.com/jgm/pandoc/releases/download/1.13.2/pandoc-1.13.2-1-amd64.deb"©
+        }
+      }
+      default: {
+        class {"::zds::pandoc": }
+      }
     }
 }

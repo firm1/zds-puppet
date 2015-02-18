@@ -8,8 +8,8 @@ class zds::params {
     #$id = $zds_params['id']
 
     $url = "vps137741.ovh.net"
-    $repo = "zestedesavoir"
-    $branch = "dev"
+    $repo = "Situphen"
+    $branch = "update-npm-dependencies"
     $id = "daily"
     $database_name = "zdsbase"
     $database_host = "localhost"
