@@ -15,7 +15,7 @@ ZDS_APP['member']['anonymous_account'] = 'anonyme'
 ZDS_APP['member']['external_account'] = 'Auteur externe'
 ZDS_APP['member']['bot_account'] = 'admin'
 
-ZDS_APP['forum']['beta_forum_id'] = 23
+ZDS_APP['forum']['beta_forum_id'] = 12
 TOP_TAG_MAX = 10
 
 ZDS_APP['site']['url'] = '<%=url%>'
@@ -23,10 +23,10 @@ ZDS_APP['site']['url'] = '<%=url%>'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'zdsbase',
-        'USER': 'root',
-        'PASSWORD': 'SuperPassword',
-        'HOST': 'localhost',
+        'NAME': '<%=database_name%>',
+        'USER': '<%=database_user%>',
+        'PASSWORD': '<%=database_password%>',
+        'HOST': '<%=database_host%>',
         'PORT': '',
         'CONN_MAX_AGE': 600,
     }
@@ -36,7 +36,7 @@ SDZ_TUTO_DIR = ''
 
 ALLOWED_HOSTS = ['*']
 
-PANDOC_LOC = '/home/zds/.cabal/bin/'
+PANDOC_LOC = ''
 PANDOC_LOG = '/var/log/pandoc-<%=id%>.log'
 PANDOC_LOG_STATE = True
 
