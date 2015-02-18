@@ -18,4 +18,6 @@ class zds::params {
     $venv_path = "/opt/${id}/venv"
     $webapp_path = "/opt/${id}/zds-site"
     $node_version = "v0.10.36"
+    $pandoc_repo = "jgm"
+    $pandoc_release_tag = "1.13"
 }
