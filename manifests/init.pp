@@ -84,7 +84,8 @@ class zds (
     file {'settings_prod':
       path => "${webapp_path}/zds/settings_prod.py",
       ensure => present,
-      content => template('zds/settings_prod.erb')
+      content => template('zds/settings_prod.erb'),
+      mode => "0755"
     } ~>
     class { 'python' :
       version    => 'system',
@@ -101,7 +102,8 @@ class zds (
     } ~>
     file { "${venv_path}/logs":
         ensure => directory,
-        require => File['settings_prod']
+        require => File['settings_prod'],
+        mode => "0755"
     } ~>
     python::pip { 'gunicorn_env':
         pkgname => 'gunicorn',
