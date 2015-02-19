@@ -9,6 +9,7 @@ class zds::front(
     $side_hv = $zds::side_hv,
     $body_bg = $zds::body_bg,
     $header_hv = $zds::header_hv,
+    $logo_url = $zds::logo_url,
 ) {
 
     class { 'nodejs':
@@ -45,10 +46,14 @@ class zds::front(
        line  => "\$color-header-hover: ${header_hv};",
        match => '^\$color-header-hover*',
     } ->
+    exec { 'logo':
+        command => "wget -ON ${webapp_path}/assets/images/logo.png ${logo_url} && wget -ON ${webapp_path}/assets/images/logo@2x.png ${logo_url}",
+        path => ["/usr/bin","/usr/local/bin","/bin"],
+    } ->
     exec {"update-npm":
        command => "npm install -g npm",
        path => "/usr/local/node/node-default/bin",
-       require => Class['nodejs']
+       require => [Class['nodejs'], Exec['logo']]
     } ->
     exec {"front-prod":
         command => "npm install",
