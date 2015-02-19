@@ -23,6 +23,7 @@ class zds::params {
     $header_hv = $zds_front['color']['header_hv']
     $side_bg = $zds_front['color']['side_bg']
     $side_hv = $zds_front['color']['side_hv']
+    $logo_url = $zds_front['logo_url']
 
     $pandoc_repo = "jgm"
     $pandoc_release_tag = "1.13"
