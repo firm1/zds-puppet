@@ -50,6 +50,7 @@ class zds (
     $pandoc_repo = $zds::params::pandoc_repo,
     $pandoc_release_tag = $zds::params::pandoc_release_tag,
     $pandoc_dest = $zds::params::pandoc_dest,
+    $logo_url = $zds::params::logo_url,
 ) inherits zds::params {
     include supervisor
 
