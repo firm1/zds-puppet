@@ -1,5 +1,28 @@
 zds:
-    url: "vps137741.ovh.net"
-    repo: "zestedesavoir"
-    branch: "dev"
-    id: "1"
+    repo:
+        author: "zestedesavoir"
+        branch: "dev"
+    site:
+        url: "vps137741.ovh.net"
+        id: "daily"
+    database:
+        host: "localhost"
+        name: "zdsbase"
+        user: "root"
+        password: "SuperPassword"
+    front:
+        node_version: "v0.10.36"
+    settings:
+        name: "ZesteDeSavoir"
+        litteral_name: "Zeste de Savoir"
+        slogan: "Zeste de Savoir, la connaissance pour tous et sans pépins"
+        abbr: "zds"
+        email_contact: ""
+        email_noreply: ""
+        forum_feedback_users: ""
+        long_description: ""
+        cnil: ""
+        social:
+            facebook: ""
+            twitter: ""
+            google: ""
