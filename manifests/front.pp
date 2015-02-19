@@ -43,7 +43,7 @@ class zds::front(
        command => "npm install -g npm",
        path => "/usr/local/node/node-default/bin",
        require => Class['nodejs']
-    } ~>
+    } ->
     exec {"front-prod":
         command => "npm install",
         cwd => "${webapp_path}",
