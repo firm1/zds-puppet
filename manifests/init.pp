@@ -74,6 +74,31 @@ class zds (
        line  => "\$color-primary: ${primary_color};",
        match => '^\$color-primary*',
     } ->
+    file_line { 'secondary_color':
+       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
+       line  => "\$color-secondary: ${secondary_color};",
+       match => '^\$color-secondary*',
+    } ->
+    file_line { 'side_bg':
+       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
+       line  => "\$color-sidebar-background: ${side_bg};",
+       match => '^\$color-sidebar-background*',
+    } ->
+    file_line { 'side_hv':
+       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
+       line  => "\$color-sidebar-hover: ${side_hv};",
+       match => '^\$color-sidebar-hover*',
+    } ->
+    file_line { 'body_bg':
+       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
+       line  => "\$color-body-background: ${body_bg};",
+       match => '^\$color-body-background*',
+    } ->
+    file_line { 'header_hv':
+       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
+       line  => "\$color-header-hover: ${header_hv};",
+       match => '^\$color-header-hover*',
+    } ->
     class { 'python' :
       version    => 'system',
       pip        => true,
