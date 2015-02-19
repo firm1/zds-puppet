@@ -59,7 +59,7 @@ class zds (
       ensure => latest,
     } ->
     vcsrepo { "${webapp_path}":
-      ensure   => present,
+      ensure   => latest,
       provider => git,
       source   => "https://github.com/${repo}/zds-site.git",
       revision => "${branch}",
@@ -68,6 +68,11 @@ class zds (
       path => "${webapp_path}/zds/settings_prod.py",
       ensure => present,
       content => template('zds/settings_prod.erb')
+    } ->
+    file_line { 'primary_color':
+       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
+       line  => "\$color-primary: ${primary_color};",
+       match => '^\$color-primary*',
     } ->
     class { 'python' :
       version    => 'system',

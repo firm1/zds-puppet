@@ -12,6 +12,13 @@ zds:
         password: "SuperPassword"
     front:
         node_version: "v0.10.36"
+        color:
+            primary: "#F39539"
+            secondary: "#ECECEC"
+            body_bg: "#FFF"
+            header_hv: "#FF6C2C"
+            side_bg: "#F6F6F6"
+            side_hv: "#FFF"
     settings:
         name: "ZesteDeSavoir"
         litteral_name: "Zeste de Savoir"

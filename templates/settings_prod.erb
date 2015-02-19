@@ -1,3 +1,4 @@
+# coding: utf-8
 import os
 from settings import ZDS_APP, INSTALLED_APPS
 
@@ -14,11 +15,28 @@ THUMBNAIL_OPTIMIZE_COMMAND = {
 ZDS_APP['member']['anonymous_account'] = 'anonyme'
 ZDS_APP['member']['external_account'] = 'Auteur externe'
 ZDS_APP['member']['bot_account'] = 'admin'
+ZDS_APP['site']['name'] = u"<%=zds_settings['name']%>"
+ZDS_APP['site']['litteral_name'] = u"<%=zds_settings['litteral_name']%>"
+ZDS_APP['site']['slogan'] = u"<%=zds_settings['slogan']%>"
+ZDS_APP['site']['abbr'] = u"<%=zds_settings['abbr']%>"
+ZDS_APP['site']['url'] = u"http://<%=url%>"
+ZDS_APP['site']['dns'] = u"<%=url%>"
+ZDS_APP['site']['email_contact'] = u"<%=zds_settings['email_contact']%>"
+ZDS_APP['site']['email_noreply'] = u"<%=zds_settings['email_noreply']%>"
+ZDS_APP['site']['repository'] = u"https://github.com/<%=repo%>/zds-site"
+ZDS_APP['site']['bugtracker'] = u"https://github.com/<%=repo%>/zds-site/issues"
+ZDS_APP['site']['short_description'] = u"<%=zds_settings['slogan']%>"
+ZDS_APP['site']['long_description'] = u"<%=zds_settings['long_description']%>"
+ZDS_APP['site']['cnil'] = u"<%=zds_settings['cnil']%>"
+ZDS_APP['site']['social']['facebook'] = u"<%=zds_settings['social']['facebook']%>"
+ZDS_APP['site']['social']['twitter'] = u"<%=zds_settings['social']['twitter']%>"
+ZDS_APP['site']['social']['googleplus'] = u"<%=zds_settings['social']['google']%>"
+<% if zds_settings['association'] == nil %>
+ZDS_APP['site'].pop("association")
+<% end %>
+#ZDS_APP['site'][''] = "<%=%>"
 
 ZDS_APP['forum']['beta_forum_id'] = 12
-TOP_TAG_MAX = 10
-
-ZDS_APP['site']['url'] = '<%=url%>'
 
 DATABASES = {
     'default': {
