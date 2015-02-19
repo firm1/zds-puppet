@@ -8,8 +8,8 @@ class zds::params {
     #$id = $zds_params['id']
 
     $url = "vps137741.ovh.net"
-    $repo = "Situphen"
-    $branch = "update-npm-dependencies"
+    $repo = "zestedesavoir"
+    $branch = "dev"
     $id = "daily"
     $database_name = "zdsbase"
     $database_host = "localhost"
@@ -20,5 +20,5 @@ class zds::params {
     $node_version = "v0.10.36"
     $pandoc_repo = "jgm"
     $pandoc_release_tag = "1.13"
-    $pandoc_dest = "/opt/${id}/pandoc"
+    $pandoc_dest = ""
 }

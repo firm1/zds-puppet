@@ -55,19 +55,6 @@ class zds (
     include nginx
     include supervisor
 
-    package {"texlive": 
-      ensure => "latest"
-    }
-    package {"texlive-xetex":
-      ensure => "latest"
-    }
-    package {"texlive-lang-french":
-      ensure => "latest"
-    }
-    package {"texlive-latex-extra": 
-      ensure => "latest"
-    }
-
     package {"git-core":
       ensure => latest,
     } ->
@@ -76,12 +63,6 @@ class zds (
       provider => git,
       source   => "https://github.com/${repo}/zds-site.git",
       revision => "${branch}",
-    } ->
-    vcsrepo { "${pandoc_dest}":
-      ensure   => present,
-      provider => git,
-      source   => "https://github.com/${pandoc_repo}/pandoc.git",
-      revision => "${pandoc_release_tag}",
     } ->
     file {'settings_prod':
       path => "${webapp_path}/zds/settings_prod.py",
@@ -105,6 +86,8 @@ class zds (
         "python-mysqldb": ensure => present;
         "libmysqlclient-dev": ensure => present;
         "haskell-platform": ensure => present;
+        "jpegoptim": ensure => present;
+        "optipng": ensure => present;
     } ->
     python::virtualenv {"${venv_path}":
         ensure       => present,
@@ -112,6 +95,11 @@ class zds (
         requirements => "${webapp_path}/requirements.txt",
         systempkgs   => true,
         distribute   => false,
+    } ->
+    python::pip { 'gunicorn_env':
+        pkgname => 'gunicorn',
+        ensure  => 'present',
+        virtualenv => "${venv_path}"
     } ->
     file {'gunicorn_start':
       path => "${venv_path}/bin/gunicorn_start.bash",
@@ -164,8 +152,10 @@ class zds (
     exec {"front-prod":
         command => "npm install",
         cwd => "${webapp_path}",
-        path => "/usr/local/node/node-default/bin",
-        require => Exec["update-npm"]
+        path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin", "/usr/bin"],
+        environment => ["HOME=/root"],
+        require => Exec["update-npm"],
+        timeout => 0
     } ->
     exec {"front-clean":
         command => "npm run gulp -- clean",
@@ -205,8 +195,8 @@ class zds (
     nginx::resource::vhost {"vhost-${id}":
       proxy => "http://puppet_zds_app_${id}",
       server_name => ["${url}"],
-      access_log => '${venv_path}/logs/nginx_access.log',
-      error_log => '${venv_path}/logs/nginx_error.log',
+      access_log => "${venv_path}/logs/nginx_access.log",
+      error_log => "${venv_path}/logs/nginx_error.log",
       require => [Exec["front-build"], File["${venv_path}/logs"]]
     }
     nginx::resource::location {"${id}_static":
@@ -216,20 +206,6 @@ class zds (
       www_root => "${webapp_path}",
       require => Exec["front-build"]
     }
-    group {"zds":
-      ensure => present,
-    }
 
-    case $::osfamily {
-      'Debian': {
-        package {'pandoc-1.13.2-1-amd64.deb':
-          ensure => present,
-          provider => "dpkg",
-          source => "https://github.com/jgm/pandoc/releases/download/1.13.2/pandoc-1.13.2-1-amd64.deb"©
-        }
-      }
-      default: {
-        class {"::zds::pandoc": }
-      }
-    }
+    class {"::zds::pandoc": }
 }
