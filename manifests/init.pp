@@ -51,63 +51,16 @@ class zds (
     $pandoc_release_tag = $zds::params::pandoc_release_tag,
     $pandoc_dest = $zds::params::pandoc_dest,
 ) inherits zds::params {
-
-    include nginx
     include supervisor
 
-    package {"git-core":
-      ensure => latest,
-    } ->
-    vcsrepo { "${webapp_path}":
-      ensure   => latest,
-      provider => git,
-      source   => "https://github.com/${repo}/zds-site.git",
-      revision => "${branch}",
-    } ->
-    file {'settings_prod':
-      path => "${webapp_path}/zds/settings_prod.py",
-      ensure => present,
-      content => template('zds/settings_prod.erb')
-    } ->
-    file_line { 'primary_color':
-       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
-       line  => "\$color-primary: ${primary_color};",
-       match => '^\$color-primary*',
-    } ->
-    file_line { 'secondary_color':
-       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
-       line  => "\$color-secondary: ${secondary_color};",
-       match => '^\$color-secondary*',
-    } ->
-    file_line { 'side_bg':
-       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
-       line  => "\$color-sidebar-background: ${side_bg};",
-       match => '^\$color-sidebar-background*',
-    } ->
-    file_line { 'side_hv':
-       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
-       line  => "\$color-sidebar-hover: ${side_hv};",
-       match => '^\$color-sidebar-hover*',
-    } ->
-    file_line { 'body_bg':
-       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
-       line  => "\$color-body-background: ${body_bg};",
-       match => '^\$color-body-background*',
-    } ->
-    file_line { 'header_hv':
-       path  => "${webapp_path}/assets/scss/variables/_colors.scss",
-       line  => "\$color-header-hover: ${header_hv};",
-       match => '^\$color-header-hover*',
-    } ->
-    class { 'python' :
-      version    => 'system',
-      pip        => true,
-      dev        => true,
-      virtualenv => true,
-    } ->
-    class { 'nodejs':
-      version => "${node_version}",
-    } ->
+    class {"::zds::database": }
+    class {"::zds::front": 
+        require => File["settings_prod"]
+    }
+    class {"::zds::web": 
+        require => Class["zds::front"]
+    }
+
     package {
         "libxml2-dev": ensure => present;
         "python-lxml": ensure => present;
@@ -119,51 +72,71 @@ class zds (
         "jpegoptim": ensure => present;
         "optipng": ensure => present;
     } ->
+    package {"git-core":
+      ensure => latest,
+    } ->
+    vcsrepo { "${webapp_path}":
+      ensure   => latest,
+      provider => git,
+      source   => "https://github.com/${repo}/zds-site.git",
+      revision => "${branch}",
+    } ~>
+    file {'settings_prod':
+      path => "${webapp_path}/zds/settings_prod.py",
+      ensure => present,
+      content => template('zds/settings_prod.erb')
+    } ~>
+    class { 'python' :
+      version    => 'system',
+      pip        => true,
+      dev        => true,
+      virtualenv => true,
+    } ~>
     python::virtualenv {"${venv_path}":
         ensure       => present,
         version      => 'system',
         requirements => "${webapp_path}/requirements.txt",
         systempkgs   => true,
         distribute   => false,
-    } ->
+    } ~>
+    file { "${venv_path}/logs":
+        ensure => directory,
+        require => File['settings_prod']
+    } ~>
     python::pip { 'gunicorn_env':
         pkgname => 'gunicorn',
         ensure  => 'present',
         virtualenv => "${venv_path}"
-    } ->
+    } ~>
     file {'gunicorn_start':
       path => "${venv_path}/bin/gunicorn_start.bash",
       ensure => present,
       content => template('zds/gunicorn_start.erb'),
       mode => "0755"
-    } ->
+    } ~>
     python::pip { 'MySQL-python':
         pkgname => 'MySQL-python',
         ensure  => 'present',
         virtualenv => "${venv_path}"
-    } ->
-    class { '::mysql::server':
-      root_password    => "${database_password}"
-    } ->
-    mysql_database { "${database_name}":
-      ensure  => 'present',
-      charset => 'utf8',
-    } ->
+    } ~>
     exec { "syncdb":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py syncdb --noinput",
-        require => File['settings_prod']
-    } ->
+        require => [File['settings_prod'], Class['zds::database']]
+    }
     exec { "migrate":
-        command => "${venv_path}/bin/python ${webapp_path}/manage.py migrate"
-    } ->
+        command => "${venv_path}/bin/python ${webapp_path}/manage.py migrate",
+        require => Exec['syncdb']
+    }
     exec { "fixtures":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py loaddata fixtures/*.yaml",
         cwd => "${webapp_path}",
-    } ->
+        require => Exec['migrate']
+    }
     exec { "advanced-fixtures":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py load_factory_data fixtures/advanced/aide_tuto_media.yaml",
         cwd => "${webapp_path}",
-    } ->
+        require => Exec['migrate']
+    }
     python::gunicorn { "vhost-${id}":
         ensure      => present,
         virtualenv  => "${venv_path}",
@@ -174,67 +147,12 @@ class zds (
         appmodule   => 'zds',
         osenv       => { 'DBHOST' => "${database_host}" },
         timeout     => 30,
-    } ->
-    exec {"update-npm":
-       command => "npm install -g npm",
-       path => "/usr/local/node/node-default/bin",
-    } ->
-    exec {"front-prod":
-        command => "npm install",
-        cwd => "${webapp_path}",
-        path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin", "/usr/bin"],
-        environment => ["HOME=/root"],
-        require => Exec["update-npm"],
-        timeout => 0
-    } ->
-    exec {"front-clean":
-        command => "npm run gulp -- clean",
-        cwd => "${webapp_path}",
-        path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin"],
-        require => Exec["front-prod"]
-    } ->
-    exec {"front-build":
-        command => "npm run gulp -- build",
-        cwd => "${webapp_path}",
-        path => ["/usr/local/node/node-default/bin","/usr/local/bin", "/bin"],
-        require => Exec["front-clean"]
-    } ->
-    file { "${webapp_path}/static":
-        ensure => directory,
-    } ->
-    file { "${venv_path}/logs":
-        ensure => directory,
-    }
-    exec { "collectstatic":
-        command => "${venv_path}/bin/python ${webapp_path}/manage.py collectstatic --noinput --clear",
-        require => [File['settings_prod'], File["${webapp_path}/static"]]
-    } ->
+        require     => File['gunicorn_start']
+    } ~>
     supervisor::app { "zds-site-${id}":
       app_name     => "zds-${id}",
       command      => "${venv_path}/bin/gunicorn_start.bash",
       directory    => "${venv_path}/bin",
-    }
-
-    nginx::resource::upstream { "puppet_zds_app_${id}":
-      members => [
-        "unix:/tmp/gunicorn-${id}.sock"
-      ],
-      require => Exec["front-build"]
-    } 
-
-    nginx::resource::vhost {"vhost-${id}":
-      proxy => "http://puppet_zds_app_${id}",
-      server_name => ["${url}"],
-      access_log => "${venv_path}/logs/nginx_access.log",
-      error_log => "${venv_path}/logs/nginx_error.log",
-      require => [Exec["front-build"], File["${venv_path}/logs"]]
-    }
-    nginx::resource::location {"${id}_static":
-      ensure => present,
-      vhost => "vhost-${id}",
-      location => "/static/",
-      www_root => "${webapp_path}",
-      require => Exec["front-build"]
     }
 
     class {"::zds::pandoc": }
