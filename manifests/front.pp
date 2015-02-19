@@ -3,6 +3,12 @@ class zds::front(
     $webapp_path = $zds::webapp_path,
     $id = $zds::id,
     $node_version = $zds::node_version,
+    $node_version = $zds::node_version,
+    $primary_color = $zds::primary_color,
+    $side_bg = $zds::side_bg,
+    $side_hv = $zds::side_hv,
+    $body_bg = $zds::body_bg,
+    $header_hv = $zds::header_hv,
 ) {
 
     class { 'nodejs':
