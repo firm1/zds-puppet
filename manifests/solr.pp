@@ -1,4 +1,4 @@
-class zds::front(
+class zds::solr(
     $venv_path = $zds::venv_path,
     $webapp_path = $zds::webapp_path,
     $solr_path = $zds::solr_path,
