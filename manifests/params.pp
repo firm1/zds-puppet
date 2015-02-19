@@ -1,13 +1,13 @@
 class zds::params {
-    #$zds_params = hiera('zds', "{'url':'vps137741.ovh.net', 'repo':'zestedesavoir', 'branch':'dev', 'id':'1'}")
-    #validate_hash($zds_params)
+    $zds_params = hiera_hash('zds')
+    validate_hash($zds_params)
 
-    #$url = $zds_params['url']
+    $url = $zds_params['url']
     #$repo = $zds_params['repo']
     #$branch = $zds_params['branch']
     #$id = $zds_params['id']
 
-    $url = "vps137741.ovh.net"
+    #$url = "vps137741.ovh.net"
     $repo = "zestedesavoir"
     $branch = "dev"
     $id = "daily"
