@@ -22,6 +22,7 @@ class zds::pandoc(
         exec {'dl-pandoc':
           command => "wget -P /tmp https://github.com/jgm/pandoc/releases/download/1.13.2/pandoc-1.13.2-1-amd64.deb",
           path => ["/usr/bin","/usr/local/bin","/bin"],
+          unless => "test -s /tmp/pandoc-1.13.2-1-amd64.deb"
         }
         package {'pandoc':
           ensure => present,
