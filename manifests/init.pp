@@ -46,6 +46,7 @@ class zds (
     $database_password = $zds::params::database_password,
     $venv_path = $zds::params::venv_path,
     $webapp_path = $zds::params::webapp_path,
+    $solr_path = $zds::params::solr_path,
     $node_version = $zds::params::node_version,
     $pandoc_repo = $zds::params::pandoc_repo,
     $pandoc_release_tag = $zds::params::pandoc_release_tag,
