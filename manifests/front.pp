@@ -66,9 +66,11 @@ class zds::front(
     } ->
     file { "${webapp_path}/static":
         ensure => directory,
+        mode => "0755"
     } ->
     exec { "collectstatic":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py collectstatic --noinput --clear",
+        cwd => "${webapp_path}",
         require => [Exec['front-build'], File["${webapp_path}/static"]]
     }
 }
