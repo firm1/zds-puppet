@@ -2,6 +2,7 @@ class zds::web(
     $venv_path = $zds::venv_path,
     $webapp_path = $zds::webapp_path,
     $id = $zds::id,
+    $url = $zds::url,
 ) {
 
     include nginx
