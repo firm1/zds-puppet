@@ -47,7 +47,11 @@ class zds::front(
        match => '^\$color-header-hover*',
     } ->
     exec { 'logo':
-        command => "wget -ON ${webapp_path}/assets/images/logo.png ${logo_url} && wget -ON ${webapp_path}/assets/images/logo@2x.png ${logo_url}",
+        command => "wget -O ${webapp_path}/assets/images/logo.png ${logo_url}",
+        path => ["/usr/bin","/usr/local/bin","/bin"],
+    } ->
+    exec { 'logo2x':
+        command => "wget -O ${webapp_path}/assets/images/logo@2x.png ${logo_url}",
         path => ["/usr/bin","/usr/local/bin","/bin"],
     } ->
     exec {"update-npm":
