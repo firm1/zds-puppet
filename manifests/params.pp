@@ -14,6 +14,7 @@ class zds::params {
 
     $venv_path = "/opt/${id}/venv"
     $webapp_path = "/opt/${id}/zds-site"
+    $solr_path = "/opt/${id}/solr"
 
     $zds_front = $zds_params['front']
     $node_version = $zds_front['node_version']
