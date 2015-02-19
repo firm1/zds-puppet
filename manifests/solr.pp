@@ -32,10 +32,22 @@ class zds::solr(
         cwd => "${solr_path}",
         unless => "test -s ${solr_path}/solr-4.9.0"
     } ->
+    file {'solr_bash':
+      path => "${solr_path}/solr.bash",
+      ensure => present,
+      content => template('zds/solr_bash.erb'),
+      mode => "0755"
+    } ->
     exec { 'build-schema-solr':
         command => "${venv_path}/bin/python ${webapp_path}/manage.py build_solr_schema > ${solr_path}/solr-4.9.0/example/solr/collection1/conf/schema.xml",
         path => ["/usr/bin","/usr/local/bin","/bin"],
         cwd => "${webapp_path}",
         require => File['settings_prod']
+    } ->
+    cron::hourly{ 'solr_update': 
+        minute => '20',
+        user => 'root',
+        command => "${venv_path}/bin/python ${webapp_path}/manage.py update_index",
+        require => Exec['build-schema-solr']
     }
 }

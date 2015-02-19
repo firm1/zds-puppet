@@ -153,11 +153,17 @@ class zds (
         osenv       => { 'DBHOST' => "${database_host}" },
         timeout     => 30,
         require     => File['gunicorn_start']
-    } ~>
+    } ->
     supervisor::app { "zds-site-${id}":
       app_name     => "zds-${id}",
       command      => "${venv_path}/bin/gunicorn_start.bash",
       directory    => "${venv_path}/bin",
+    } ->
+    supervisor::app { "zds-solr-${id}":
+      app_name     => "solr-${id}",
+      command      => "java -jar start.jar",
+      directory    => "${solr_path}/solr-4.9.0/example/",
+      require => Class['zds::solr']
     }
 
     class {"::zds::pandoc": }
