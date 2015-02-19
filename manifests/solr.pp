@@ -15,22 +15,18 @@ class zds::solr(
 
     class { 'java':
       distribution => 'jdk',
-      version => '1.7'
     }
 
     file {"${solr_path}":
         ensure => directory
     } ->
-    exec { 'solr-dl':
-        command => "wget -P ${solr_path} http://archive.apache.org/dist/lucene/solr/4.9.0/solr-4.9.0.zip",
-        path => ["/usr/bin","/usr/local/bin","/bin"],
-        unless => "test -s ${solr_path}/solr-4.9.0.zip"
-    } ->
-    exec { 'unzip-solr':
-        command => "unzip solr-4.9.0.zip",
-        path => ["/usr/bin","/usr/local/bin","/bin"],
-        cwd => "${solr_path}",
-        unless => "test -s ${solr_path}/solr-4.9.0"
+    archive { 'solr':
+        ensure => present,
+        url => 'http://archive.apache.org/dist/lucene/solr/4.9.0/solr-4.9.0.zip',
+        target => "${solr_path}",
+        follow_redirects => false,
+        extension => 'zip',
+        src_target => '/tmp'
     } ->
     exec { 'build-schema-solr':
         command => "${venv_path}/bin/python ${webapp_path}/manage.py build_solr_schema > ${solr_path}/solr-4.9.0/example/solr/collection1/conf/schema.xml",
@@ -38,4 +34,5 @@ class zds::solr(
         cwd => "${webapp_path}",
         require => File['settings_prod']
     }
+    
 }
