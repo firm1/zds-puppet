@@ -63,6 +63,10 @@ class zds (
     class {"::zds::web": 
         require => Class["zds::front"]
     }
+    
+    class { 'memcached':
+        max_memory => '50%'
+    }
 
     package {
         "libxml2-dev": ensure => present;
