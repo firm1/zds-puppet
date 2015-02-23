@@ -56,7 +56,9 @@ class zds (
     include supervisor
 
     class {"::zds::database": }
-    class {"::zds::solr": }
+    class {"::zds::solr": 
+        require => File["settings_prod"]
+    }
     class {"::zds::front": 
         require => File["settings_prod"]
     }
