@@ -34,3 +34,9 @@ zds:
             facebook: "https://www.facebook.com/openclassrooms"
             twitter: "https://twitter.com/openclassrooms"
             google: "https://plus.google.com/+OpenClassrooms/posts"
+        smtp:
+            tls: True
+            host: "smtp.gmail.com"
+            port: "587"
+            user: "your-username@gmail.com"
+            password: "your-password"
