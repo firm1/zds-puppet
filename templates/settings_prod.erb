@@ -34,6 +34,15 @@ ZDS_APP['site']['social']['googleplus'] = u"<%=zds_settings['social']['google']%
 <% if zds_settings['association'] == nil %>
 ZDS_APP['site'].pop("association")
 <% end %>
+
+<% if zds_settings['smtp'] != nil %>
+EMAIL_USE_TLS=<%=zds_settings['smtp']['tls']%>
+EMAIL_HOST=<%=zds_settings['smtp']['host']%>
+EMAIL_PORT=<%=zds_settings['smtp']['port']%>
+EMAIL_HOST_USER=<%=zds_settings['smtp']['user']%>
+EMAIL_HOST_PASSWORD=<%=zds_settings['smtp']['password']%>
+<% end %>
+
 #ZDS_APP['site'][''] = "<%=%>"
 
 ZDS_APP['forum']['beta_forum_id'] = 12
