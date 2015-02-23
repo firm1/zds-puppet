@@ -28,5 +28,6 @@ exec /opt/<%=id%>/venv/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
   --workers $NUM_WORKERS \
   --user=$USER --group=$GROUP \
   --bind=unix:$SOCKFILE \
+  --timeout=500 \
   --log-level=debug \
   --log-file=-
