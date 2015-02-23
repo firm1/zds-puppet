@@ -143,11 +143,6 @@ class zds (
         cwd => "${webapp_path}",
         require => Exec['migrate']
     }
-    exec { "advanced-fixtures":
-        command => "${venv_path}/bin/python ${webapp_path}/manage.py load_factory_data fixtures/advanced/aide_tuto_media.yaml",
-        cwd => "${webapp_path}",
-        require => Exec['migrate']
-    }
     python::gunicorn { "vhost-${id}":
         ensure      => present,
         virtualenv  => "${venv_path}",
