@@ -18,6 +18,7 @@ class zds::web(
       server_name => ["${url}"],
       access_log => "${venv_path}/logs/nginx_access.log",
       error_log => "${venv_path}/logs/nginx_error.log",
+      subscribe => Exec["collectstatic"],
       require => File["${venv_path}/logs"]
     }
 
@@ -25,6 +26,7 @@ class zds::web(
       ensure => present,
       vhost => "vhost-${id}",
       location => "/static/",
-      www_root => "${webapp_path}"
+      www_root => "${webapp_path}",
+      subscribe => Exec["collectstatic"],
     }
 }

@@ -36,7 +36,7 @@ ZDS_APP['site'].pop("association")
 <% end %>
 
 <% if zds_settings['smtp'] != nil %>
-EMAIL_USE_TLS=<%=zds_settings['smtp']['tls']%>
+EMAIL_USE_TLS=True
 EMAIL_HOST='<%=zds_settings['smtp']['host']%>'
 EMAIL_PORT=<%=zds_settings['smtp']['port']%>
 EMAIL_HOST_USER='<%=zds_settings['smtp']['user']%>'

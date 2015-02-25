@@ -55,15 +55,8 @@ class zds (
 ) inherits zds::params {
     include supervisor
 
-    class {"::zds::database": }
-    class {"::zds::solr": 
-        require => File["settings_prod"]
-    }
-    class {"::zds::front": 
-        require => File["settings_prod"]
-    }
-    class {"::zds::web": 
-        require => Class["zds::front"]
+    class {"::zds::database": 
+        subscribe => File["settings_prod"],
     }
     
     class { 'memcached':
@@ -89,58 +82,62 @@ class zds (
       provider => git,
       source   => "https://github.com/${repo}/zds-site.git",
       revision => "${branch}",
-    } ~>
+    } ->
     file {'settings_prod':
       path => "${webapp_path}/zds/settings_prod.py",
       ensure => present,
       content => template('zds/settings_prod.erb'),
       mode => "0755"
-    } ~>
+    } ->
     class { 'python' :
       version    => 'system',
       pip        => true,
       dev        => true,
       virtualenv => true,
-    } ~>
+    } ->
     python::virtualenv {"${venv_path}":
         ensure       => present,
         version      => 'system',
         requirements => "${webapp_path}/requirements.txt",
         systempkgs   => true,
         distribute   => false,
-    } ~>
+        subscribe => Vcsrepo["${webapp_path}"],
+    } ->
     file { "${venv_path}/logs":
         ensure => directory,
         require => File['settings_prod'],
         mode => "0755"
-    } ~>
+    } ->
     python::pip { 'gunicorn_env':
         pkgname => 'gunicorn',
         ensure  => 'present',
         virtualenv => "${venv_path}"
-    } ~>
+    } ->
     file {'gunicorn_start':
       path => "${venv_path}/bin/gunicorn_start.bash",
       ensure => present,
       content => template('zds/gunicorn_start.erb'),
       mode => "0755"
-    } ~>
+    } ->
     python::pip { 'MySQL-python':
         pkgname => 'MySQL-python',
         ensure  => 'present',
         virtualenv => "${venv_path}"
-    } ~>
+    } ->
     exec { "syncdb":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py syncdb --noinput",
+        subscribe => File["settings_prod"],
         require => [File['settings_prod'], Class['zds::database']]
     }
     exec { "migrate":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py migrate",
+        subscribe => File["settings_prod"],
         require => Exec['syncdb']
     }
     exec { "fixtures":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py loaddata fixtures/*.yaml",
         cwd => "${webapp_path}",
+        subscribe => File["settings_prod"],
         require => Exec['migrate']
     }
     python::gunicorn { "vhost-${id}":
@@ -153,18 +150,33 @@ class zds (
         appmodule   => 'zds',
         osenv       => { 'DBHOST' => "${database_host}" },
         timeout     => 30,
-        require     => File['gunicorn_start']
+        require     => File['gunicorn_start'],
+        subscribe => [Vcsrepo["${webapp_path}"], File["settings_prod"]]
     } ->
     supervisor::app { "zds-site-${id}":
       app_name     => "zds-${id}",
       command      => "${venv_path}/bin/gunicorn_start.bash",
       directory    => "${venv_path}/bin",
+      subscribe => [Vcsrepo["${webapp_path}"], File["settings_prod"]]
     } ->
     supervisor::app { "zds-solr-${id}":
       app_name     => "solr-${id}",
       command      => "java -jar start.jar",
       directory    => "${solr_path}/solr-4.9.0/example/",
       require => Class['zds::solr']
+    }
+
+    class {"::zds::solr":
+        require => [Vcsrepo["${webapp_path}"], File["settings_prod"]]
+    }
+
+    class {"::zds::front":
+        require => File["settings_prod"]
+    }
+
+    class {"::zds::web":
+        require => Class["zds::front"],
+        subscribe => Class["zds::front"]
     }
 
     class {"::zds::pandoc": }

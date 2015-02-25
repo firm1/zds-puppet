@@ -12,7 +12,6 @@ class zds::solr(
     $header_hv = $zds::header_hv,
     $logo_url = $zds::logo_url,
 ) {
-
     class { 'java':
       distribution => 'jdk',
     }
@@ -36,12 +35,13 @@ class zds::solr(
         command => "${venv_path}/bin/python ${webapp_path}/manage.py build_solr_schema > ${solr_path}/solr-4.9.0/example/solr/collection1/conf/schema.xml",
         path => ["/usr/bin","/usr/local/bin","/bin"],
         cwd => "${webapp_path}",
-        require => File['settings_prod']
+        subscribe => [Vcsrepo["${webapp_path}"], Python::Virtualenv["${venv_path}"]]
     } ->
     cron::hourly{ 'solr_update': 
         minute => '20',
         user => 'root',
         command => "${venv_path}/bin/python ${webapp_path}/manage.py update_index",
+        subscribe => Vcsrepo["${webapp_path}"],
         require => Exec['build-schema-solr']
     }
 }

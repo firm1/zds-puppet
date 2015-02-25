@@ -16,6 +16,8 @@ class zds::front(
       version => "${node_version}",
     }
 
+    $a = file("${webapp_path}/assets/scss/variables/_colors.scss",'/dev/null')
+    if($a != '') {
     file_line { 'primary_color':
        path  => "${webapp_path}/assets/scss/variables/_colors.scss",
        line  => "\$color-primary: ${primary_color};",
@@ -45,7 +47,8 @@ class zds::front(
        path  => "${webapp_path}/assets/scss/variables/_colors.scss",
        line  => "\$color-header-hover: ${header_hv};",
        match => '^\$color-header-hover*',
-    } ->
+    } 
+    }
     exec { 'logo':
         command => "wget -O ${webapp_path}/assets/images/logo.png ${logo_url}",
         path => ["/usr/bin","/usr/local/bin","/bin"],
@@ -65,18 +68,21 @@ class zds::front(
         path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin", "/usr/bin"],
         environment => ["HOME=/root"],
         require => Exec["update-npm"],
+        subscribe => Vcsrepo["${webapp_path}"],
         timeout => 0
     } ->
     exec {"front-clean":
         command => "npm run gulp -- clean",
         cwd => "${webapp_path}",
         path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin"],
+        subscribe => Exec["front-prod"],
         require => Exec["front-prod"]
     } ->
     exec {"front-build":
         command => "npm run gulp -- build",
         cwd => "${webapp_path}",
         path => ["/usr/local/node/node-default/bin","/usr/local/bin", "/bin"],
+        subscribe => Exec["front-clean"],
         require => Exec["front-clean"]
     } ->
     file { "${webapp_path}/static":
@@ -86,6 +92,7 @@ class zds::front(
     exec { "collectstatic":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py collectstatic --noinput --clear",
         cwd => "${webapp_path}",
-        require => [Exec['front-build'], File["${webapp_path}/static"]]
+        subscribe => Exec["front-clean"],
+        require => [Exec['front-build'], File["${webapp_path}/static"], Python::Virtualenv["${venv_path}"]]
     }
 }
