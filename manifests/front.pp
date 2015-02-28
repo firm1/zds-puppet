@@ -1,7 +1,7 @@
-class zds::front(
-    $venv_path = $zds::venv_path,
-    $webapp_path = $zds::webapp_path,
-    $id = $zds::id,
+define zds::front(
+    $venv_path = "/opt/${name}/venv",
+    $webapp_path = "/opt/${name}/zds-site",
+    $id = $name,
     $node_version = $zds::node_version,
     $primary_color = $zds::primary_color,
     $secondary_color = $zds::secondary_color,
@@ -94,5 +94,11 @@ class zds::front(
         cwd => "${webapp_path}",
         subscribe => Exec["front-clean"],
         require => [Exec['front-build'], File["${webapp_path}/static"], Python::Virtualenv["${venv_path}"]]
+    } ->
+    exec {"docu":
+        command => "make html",
+        cwd => "${webapp_path}/doc/",
+        path => ["/usr/bin/", "/bin", "/usr/local/bin", "${venv_path}/bin"],
+        require => Python::Requirements["${webapp_path}/requirements-dev.txt"]
     }
 }

@@ -3,9 +3,7 @@ class zds::params {
     validate_hash($zds_params)
 
     $url = $zds_params['site']['url']
-    $repo = $zds_params['repo']['author']
-    $branch = $zds_params['repo']['branch']
-    $id = $zds_params['site']['id']
+    $repos = $zds_params['repos']
 
     $database_name = $zds_params['database']['name']
     $database_host = $zds_params['database']['host']

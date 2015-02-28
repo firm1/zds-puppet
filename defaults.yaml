@@ -1,42 +1,46 @@
 zds:
-    repo:
-        author: "zestedesavoir"
-        branch: "dev"
+    repos:
+        "2318":
+            author: "A-312"
+            branch: "fix-736-searchauto"
+        "2371":
+            author: "Situphen"
+            branch: "fix-2367"
     site:
         url: "vps137741.ovh.net"
-        id: "daily"
     database:
         host: "localhost"
-        name: "zdsbase"
+        name: "basetest"
         user: "root"
         password: "SuperPassword"
     front:
         node_version: "v0.10.36"
-        logo_url: "http://static.siteduzero.com/prod/logo/logo_blog.png"
+        logo_url: "http://zestedesavoir.com/static/images/logo.png"
         color:
-            primary: "#F39539"
-            secondary: "#C21936"
-            body_bg: "#FFF"
-            header_hv: "#B03712"
-            side_bg: "#F6F6F6"
-            side_hv: "#FFF"
+            primary: "#084561"
+            secondary: "#F8AD32"
+            body_bg: "#F7F7F7"
+            header_hv: "#396a81"
+            side_bg: "#F0F0F0"
+            side_hv: "#FFFFFF"
     settings:
-        name: "OpenClassrooms"
-        litteral_name: "OpenClassrooms"
-        slogan: "OpenClassrooms : Bright teachers, great classmates."
-        abbr: "OC"
-        email_contact: ""
-        email_noreply: ""
-        forum_feedback_users: ""
-        long_description: "Chez OpenClassrooms, nous voulons démocratiser le savoir en apportant une dimension supplémentaire à cette nouvelle manière de se former. Nous voulons démocratiser le partage des connaissances. Nous voulons permettre au plus grand nombre d'apprendre et d'enseigner, tout simplement, en rejoignant une communauté qui participe, qui s'entraide, qui échange, qui débat, qui interagit et qui partage son savoir. Chaque membre d'OpenClassrooms est à la fois étudiant et professeur."
-        cnil: ""
+        name: "ZesteDeSavoir"
+        litteral_name: "Zeste de Savoir"
+        slogan: "Zeste de Savoir, la connaissance pour tous et sans pépis"
+        abbr: "zds"
+        email_contact: "communication@zestedesavoir.com"
+        email_noreply: "noreply@zestedesavoir.com"
+        forum_feedback_users: "/forums/communaute/bug-suggestions/"
+        long_description: "Zeste de Savoir est un site de partage de connaissances sur lequel vous trouverez des tutoriels de tous niveaux, des articles et des forums d'entraide animés par et pourla communau."
+        cnil: "1771020"
         social:
-            facebook: "https://www.facebook.com/openclassrooms"
-            twitter: "https://twitter.com/openclassrooms"
-            google: "https://plus.google.com/+OpenClassrooms/posts"
+            facebook: "https://www.facebook.com/ZesteDeSavoir"
+            twitter: "https://twitter.com/ZesteDeSavoir"
+            google: "https://plus.google.com/u/0/107033688356682807298"
         smtp:
             tls: True
             host: "smtp.gmail.com"
             port: "587"
-            user: "your-username@gmail.com"
-            password: "your-password"
+            user: "puppet.zds@gmail.com"
+            password: "ZestePete"
+            

@@ -1,7 +1,7 @@
-class zds::web(
-    $venv_path = $zds::venv_path,
-    $webapp_path = $zds::webapp_path,
-    $id = $zds::id,
+define zds::web(
+    $venv_path = "/opt/${name}/venv",
+    $webapp_path = "/opt/${name}/zds-site",
+    $id = $name,
     $url = $zds::url,
 ) {
 
@@ -15,6 +15,7 @@ class zds::web(
 
     nginx::resource::vhost {"vhost-${id}":
       proxy => "http://puppet_zds_app_${id}",
+      listen_port => "${id}",
       server_name => ["${url}"],
       access_log => "${venv_path}/logs/nginx_access.log",
       error_log => "${venv_path}/logs/nginx_error.log",
@@ -22,11 +23,20 @@ class zds::web(
       require => File["${venv_path}/logs"]
     }
 
-    nginx::resource::location {"${id}_static":
+    nginx::resource::location {"static_${id}":
       ensure => present,
-      vhost => "vhost-${id}",
       location => "/static/",
-      www_root => "${webapp_path}",
+      vhost => "vhost-${id}",
+      location_alias => "${webapp_path}/static/",
       subscribe => Exec["collectstatic"],
     }
+
+    nginx::resource::location {"doc_${id}":
+      ensure => present,
+      location => "/doc/",
+      vhost => "vhost-${id}",
+      location_alias => "${webapp_path}/doc/build/html/",
+      subscribe => Exec["collectstatic"],
+    }
+
 }
