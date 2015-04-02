@@ -29,26 +29,23 @@ define zds::django (
       content => template('zds/settings_prod.erb'),
       mode => "0755"
     } ->
+    exec {"requirement-prod-${id}":
+        command => "cat ${webapp_path}/requirements.txt > ${webapp_path}/req-prod.txt && printf '\nujson\ngunicorn\nMySQL-python\n ' >> ${webapp_path}/req-prod.txt && cat ${webapp_path}/requirements-dev.txt >> ${webapp_path}/req-prod.txt",
+        path => ["/usr/local/bin", "/usr/bin", "/bin"],
+    }
     python::virtualenv {"${venv_path}":
         ensure       => present,
         version      => 'system',
-        requirements => "${webapp_path}/requirements.txt",
+        requirements => "${webapp_path}/req-prod.txt",
         systempkgs   => true,
         distribute   => false,
+        require => Exec["requirement-prod-${id}"],
         subscribe => Vcsrepo["${webapp_path}"],
-    } ->
-    python::requirements {"${webapp_path}/requirements-dev.txt":
-       virtualenv => "${venv_path}",
     } ->
     file { "${venv_path}/logs":
         ensure => directory,
         require => File["settings_prod_${id}"],
         mode => "0755"
-    } ->
-    python::pip { "gunicorn_env_${id}":
-        pkgname => 'gunicorn',
-        ensure  => 'present',
-        virtualenv => "${venv_path}"
     } ->
     file {"gunicorn_start_${id}":
       path => "${venv_path}/bin/gunicorn_start.bash",
@@ -56,14 +53,9 @@ define zds::django (
       content => template('zds/gunicorn_start.erb'),
       mode => "0755"
     } ->
-    python::pip { "MySQL-python-${id}":
-        pkgname => 'MySQL-python',
-        ensure  => 'present',
-        virtualenv => "${venv_path}"
-    } ->
     exec { "syncdb-${id}":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py syncdb --noinput",
-        subscribe => File["settings_prod"],
+        subscribe => File["settings_prod_${id}"],
         require => File["settings_prod_${id}"]
     }
     exec { "migrate-${id}":
@@ -74,7 +66,7 @@ define zds::django (
     exec { "fixtures-${id}":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py loaddata fixtures/*.yaml",
         cwd => "${webapp_path}",
-        subscribe => File["settings_prod"],
+        subscribe => File["settings_prod_${id}"],
         require => Exec["migrate-${id}"]
     }
     python::gunicorn { "vhost-${id}":
@@ -87,7 +79,7 @@ define zds::django (
         appmodule   => 'zds',
         osenv       => { 'DBHOST' => "${database_host}" },
         timeout     => 30,
-        require     => File['gunicorn_start'],
+        require     => File["gunicorn_start_${id}"],
         subscribe => [Vcsrepo["${webapp_path}"], File["settings_prod_${id}"]]
     } ->
     supervisor::app { "zds-site-${id}":

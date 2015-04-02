@@ -48,14 +48,21 @@ class zds (
     $pandoc_dest = $zds::params::pandoc_dest,
     $logo_url = $zds::params::logo_url,
 ) inherits zds::params {
-    include supervisor
 
-    class {"::zds::database": 
-        subscribe => File["settings_prod"],
+    class { 'java':
+      distribution => 'jdk',
     }
-    
+
+    class { 'nodejs':
+      version => "${node_version}",
+    }
+
     class { 'memcached':
-        max_memory => '50%'
+        max_memory => '20%'
+    }
+
+    class { '::mysql::server':
+      root_password    => "${database_password}"
     }
 
     package {
@@ -80,9 +87,10 @@ class zds (
     } ->
     class {"::zds::pandoc": }
 
+    create_resources ("::zds::core", $repos)
+    create_resources ("::zds::database", $repos)
     create_resources ("::zds::django", $repos)
     create_resources ("::zds::solr", $repos)
     create_resources ("::zds::front", $repos)
     create_resources ("::zds::web", $repos)
-
 }

@@ -2,6 +2,8 @@ define zds::web(
     $venv_path = "/opt/${name}/venv",
     $webapp_path = "/opt/${name}/zds-site",
     $id = $name,
+    $repo = undef,
+    $branch = undef,
     $url = $zds::url,
 ) {
 
@@ -19,8 +21,16 @@ define zds::web(
       server_name => ["${url}"],
       access_log => "${venv_path}/logs/nginx_access.log",
       error_log => "${venv_path}/logs/nginx_error.log",
-      subscribe => Exec["collectstatic"],
-      require => File["${venv_path}/logs"]
+      subscribe => Exec["collectstatic-${id}"],
+      require => File["${venv_path}/logs"],
+      proxy_redirect => "http://${url}/ http://${url}:${id}/",
+      location_cfg_append  => {
+        add_header => {
+          "'Access-Control-Allow-Origin'"  => "'*'",
+          "'Access-Control-Allow-Methods'"  => "'POST, GET, OPTIONS , PUT'",
+          "'Access-Control-Allow-Headers'"  => "'Authorization,Content-Type,Accept,Origin,User-Agent,DNT,Cache-Control,X-Mx-ReqToken,Keep-Alive,X-Requested-With,If-Modified-Since'"
+        },
+      },
     }
 
     nginx::resource::location {"static_${id}":
@@ -28,7 +38,7 @@ define zds::web(
       location => "/static/",
       vhost => "vhost-${id}",
       location_alias => "${webapp_path}/static/",
-      subscribe => Exec["collectstatic"],
+      subscribe => Exec["collectstatic-${id}"],
     }
 
     nginx::resource::location {"doc_${id}":
@@ -36,7 +46,7 @@ define zds::web(
       location => "/doc/",
       vhost => "vhost-${id}",
       location_alias => "${webapp_path}/doc/build/html/",
-      subscribe => Exec["collectstatic"],
+      subscribe => Exec["collectstatic-${id}"],
     }
 
 }

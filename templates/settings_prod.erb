@@ -2,7 +2,7 @@
 import os
 from settings import ZDS_APP, INSTALLED_APPS
 
-DEBUG = False
+DEBUG = True
 
 SECRET_KEY = '&vzn*^bz7e_hfn$rg72i*)p5ai*4^-ozds5rfvkm!1ca@ffoxc'
 
@@ -19,7 +19,7 @@ ZDS_APP['site']['name'] = u"<%=zds_settings['name']%>"
 ZDS_APP['site']['litteral_name'] = u"<%=zds_settings['litteral_name']%>"
 ZDS_APP['site']['slogan'] = u"<%=zds_settings['slogan']%>"
 ZDS_APP['site']['abbr'] = u"<%=zds_settings['abbr']%>"
-ZDS_APP['site']['url'] = u"http://<%=url%>"
+ZDS_APP['site']['url'] = u"http://<%=url%>:<%=id%>"
 ZDS_APP['site']['dns'] = u"<%=url%>"
 ZDS_APP['site']['email_contact'] = u"<%=zds_settings['email_contact']%>"
 ZDS_APP['site']['email_noreply'] = u"<%=zds_settings['email_noreply']%>"
@@ -50,7 +50,7 @@ ZDS_APP['forum']['beta_forum_id'] = 12
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '<%=database_name%>',
+        'NAME': '<%=database_name%>-<%=id%>',
         'USER': '<%=database_user%>',
         'PASSWORD': '<%=database_password%>',
         'HOST': '<%=database_host%>',
@@ -63,7 +63,7 @@ SDZ_TUTO_DIR = ''
 
 ALLOWED_HOSTS = ['*']
 
-PANDOC_LOC = '<%=pandoc_dest%>/dist/build/pandoc/'
+PANDOC_LOC = '<%=pandoc_dest%>'
 PANDOC_LOG = '/var/log/pandoc-<%=id%>.log'
 PANDOC_LOG_STATE = True
 

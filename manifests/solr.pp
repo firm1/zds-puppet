@@ -3,13 +3,12 @@ define zds::solr(
     $webapp_path = "/opt/${name}/zds-site",
     $id = $name,
     $solr_path = "/opt/${name}/solr",
+    $repo = undef,
+    $branch = undef,
 ) {
-    class { 'java':
-      distribution => 'jdk',
-    }
-
     file {"${solr_path}":
-        ensure => directory
+        ensure => directory,
+        require => File["/opt/${id}/"]
     } ->
     exec { "solr-dl-${id}":
         command => "wget -P ${solr_path} http://archive.apache.org/dist/lucene/solr/4.9.0/solr-4.9.0.zip",

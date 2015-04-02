@@ -1,11 +1,10 @@
-class zds::database(
+define zds::database(
     $database_name = $zds::database_name,
-    $database_password = $zds::database_password,
+    $repo = undef,
+    $branch = undef,
+    $id = $name,
 ) {
-    class { '::mysql::server':
-      root_password    => "${database_password}"
-    } ->
-    mysql_database { "${database_name}":
+    mysql_database { "${database_name}-${id}":
       ensure  => 'present',
       charset => 'utf8',
     }

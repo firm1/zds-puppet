@@ -4,15 +4,12 @@ class zds::params {
 
     $url = $zds_params['site']['url']
     $repos = $zds_params['repos']
+    validate_hash($repos)
 
     $database_name = $zds_params['database']['name']
     $database_host = $zds_params['database']['host']
     $database_user = $zds_params['database']['user']
     $database_password = $zds_params['database']['password']
-
-    $venv_path = "/opt/${id}/venv"
-    $webapp_path = "/opt/${id}/zds-site"
-    $solr_path = "/opt/${id}/solr"
 
     $zds_front = $zds_params['front']
     $node_version = $zds_front['node_version']
