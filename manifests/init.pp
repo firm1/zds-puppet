@@ -56,6 +56,11 @@ class zds (
     class { 'nodejs':
       version => "${node_version}",
     }
+    exec {"update-npm":
+        command => "npm install -g npm",
+        path => "/usr/local/node/node-default/bin"
+        require => Class['nodejs']
+    }
 
     class { 'memcached':
         max_memory => '20%'
