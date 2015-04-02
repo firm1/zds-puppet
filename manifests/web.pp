@@ -49,7 +49,7 @@ define zds::web(
     }
 
     service { "webserver":
-        name => "nginx"
+        name => "nginx",
         ensure  => "running",
         enable  => "true",
         require => [Nginx::Resource::Location["static_${id}"], Nginx::Resource::Location["doc_${id}"], Nginx::Resource::Upstream["puppet_zds_app_${id}"]],
