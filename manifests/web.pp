@@ -21,7 +21,6 @@ define zds::web(
       server_name => ["${url}"],
       access_log => "${venv_path}/logs/nginx_access.log",
       error_log => "${venv_path}/logs/nginx_error.log",
-      subscribe => Exec["collectstatic-${id}"],
       require => File["${venv_path}/logs"],
       proxy_redirect => "http://${url}/ http://${url}:${id}/",
       location_cfg_append  => {
@@ -38,7 +37,7 @@ define zds::web(
       location => "/static/",
       vhost => "vhost-${id}",
       location_alias => "${webapp_path}/static/",
-      subscribe => Exec["collectstatic-${id}"],
+      require => Nginx::Resource::Vhost["vhost-${id}"],
     }
 
     nginx::resource::location {"doc_${id}":
@@ -46,7 +45,13 @@ define zds::web(
       location => "/doc/",
       vhost => "vhost-${id}",
       location_alias => "${webapp_path}/doc/build/html/",
-      subscribe => Exec["collectstatic-${id}"],
+      require => Nginx::Resource::Vhost["vhost-${id}"],
     }
 
+    service { "nginx":
+        ensure  => "running",
+        enable  => "true",
+        require => [Nginx::Resource::Location["static_${id}"], Nginx::Resource::Location["doc_${id}"], Nginx::Resource::Upstream["puppet_zds_app_${id}"]],
+        subscribe => Exec["collectstatic-${id}"],
+    }
 }
