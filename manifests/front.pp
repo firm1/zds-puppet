@@ -50,7 +50,7 @@ define zds::front(
        command => "npm install -g npm",
        path => "/usr/local/node/node-default/bin",
        require => Class['nodejs']
-    } ->
+    }
     exec {"front-prod-${id}":
         command => "npm install",
         cwd => "${webapp_path}",
@@ -59,34 +59,33 @@ define zds::front(
         require => Exec["update-npm-${id}"],
         subscribe => Vcsrepo["${webapp_path}"],
         timeout => 0
-    } ->
+    }
     exec {"front-clean-${id}":
         command => "npm run gulp -- clean",
         cwd => "${webapp_path}",
         path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin"],
-        subscribe => Exec["front-prod-${id}"],
         require => Exec["front-prod-${id}"]
-    } ->
+    }
     exec {"front-build-${id}":
         command => "npm run gulp -- build",
         cwd => "${webapp_path}",
         path => ["/usr/local/node/node-default/bin","/usr/local/bin", "/bin"],
-        subscribe => Exec["front-clean-${id}"],
         require => Exec["front-clean-${id}"]
-    } ->
+    }
     file { "${webapp_path}/static":
         ensure => directory,
-        mode => "0755"
-    } ->
+        mode => "0755",
+        require => Exec["front-build-${id}"]
+    }
     exec { "collectstatic-${id}":
         command => "${venv_path}/bin/python ${webapp_path}/manage.py collectstatic --noinput --clear",
         cwd => "${webapp_path}",
-        subscribe => Exec["front-clean-${id}"],
         require => [Exec["front-build-${id}"], File["${webapp_path}/static"], Python::Virtualenv["${venv_path}"]]
-    } ->
+    }
     exec {"docu-${id}":
         command => "make html",
         cwd => "${webapp_path}/doc/",
         path => ["/usr/bin/", "/bin", "/usr/local/bin", "${venv_path}/bin"],
+        require => Python::Virtualenv["${venv_path}"]
     }
 }
