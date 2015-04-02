@@ -37,7 +37,6 @@ define zds::web(
       location => "/static/",
       vhost => "vhost-${id}",
       location_alias => "${webapp_path}/static/",
-      require => Nginx::Resource::Vhost["vhost-${id}"],
     }
 
     nginx::resource::location {"doc_${id}":
@@ -45,6 +44,5 @@ define zds::web(
       location => "/doc/",
       vhost => "vhost-${id}",
       location_alias => "${webapp_path}/doc/build/html/",
-      require => Nginx::Resource::Vhost["vhost-${id}"],
     }
 }
