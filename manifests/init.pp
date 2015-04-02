@@ -58,7 +58,7 @@ class zds (
     }
     exec {"update-npm":
         command => "npm install -g npm",
-        path => "/usr/local/node/node-default/bin"
+        path => "/usr/local/node/node-default/bin",
         require => Class['nodejs']
     }
 
