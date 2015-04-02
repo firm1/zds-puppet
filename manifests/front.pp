@@ -46,17 +46,13 @@ define zds::front(
        match => '^\$color-header-hover*',
     } 
     }
-    exec {"update-npm-${id}":
-       command => "npm install -g npm",
-       path => "/usr/local/node/node-default/bin",
-       require => Class['nodejs']
-    }
+
     exec {"front-prod-${id}":
         command => "npm install",
         cwd => "${webapp_path}",
         path => ["/usr/local/node/node-default/bin","/usr/local/bin","/bin", "/usr/bin"],
         environment => ["HOME=/root"],
-        require => Exec["update-npm-${id}"],
+        require => Exec["update-npm"],
         subscribe => Vcsrepo["${webapp_path}"],
         timeout => 0
     }
